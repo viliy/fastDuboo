@@ -20,26 +20,21 @@ class SwooleClient implements ClientInterface
      */
     protected $client;
 
+    /**
+     * @var $swooleClient swoole_client
+     */
+    protected $swooleClient;
+
     protected $maxTryCount = 3;
 
     protected $tryCount = 0;
 
     public function __construct($async = false)
     {
-        $this->client = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
-//        $this->client->set(
-//            [
-//                'open_eof_check' => true,
-//                'package_eof' => true,
-//                'package_max_length' => -1,
-//                'socket_buffer_size' => -1
-//
-//            ]
-//        );
+        $this->swooleClient = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
         if ($async) {
             $this->onEvent();
         }
-
     }
 
     public function connect($host, $port, $timeout)
@@ -51,10 +46,10 @@ class SwooleClient implements ClientInterface
 
     public function onEvent()
     {
-        $this->client->on('connect', [$this, 'onConnect']);
-        $this->client->on('receive', [$this, 'onReceive']);
-        $this->client->on('error', [$this, 'onError']);
-        $this->client->on('close', [$this, 'onClose']);
+        $this->swooleClient->on('connect', [$this, 'onConnect']);
+        $this->swooleClient->on('receive', [$this, 'onReceive']);
+        $this->swooleClient->on('error', [$this, 'onError']);
+        $this->swooleClient->on('close', [$this, 'onClose']);
     }
 
     /**
@@ -65,17 +60,23 @@ class SwooleClient implements ClientInterface
      */
     public function invoke(string $provider, array $params)
     {
-        $this->client->send(duboo_buffer($provider, $params));
+        $data = duboo_buffer($provider, $params);
+        $this->client->send($data);
     }
 
+    /**
+     * @return string
+     */
     public function receive()
     {
-        $data = $this->client->recv(655350, 1 );
-
-        $data = mb_convert_encoding($data, 'UTF-8', 'UTF-8');
-        return preg_replace('/(^.*?\{)/', '{', $data);
+        return $data = $this->client->recv(100000, 1 );
     }
 
+    /**
+     * @param $host
+     * @param $port
+     * @param $timeout
+     */
     public function tryReconnect($host, $port, $timeout)
     {
         if ($this->tryCount <= $this->maxTryCount) {
@@ -115,5 +116,19 @@ class SwooleClient implements ClientInterface
      */
     public function onClose(swoole_client $client)
     {
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     * @return null|string|string[]
+     * @throws \Icecave\Flax\Exception\EncodeException
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function __call($name, $arguments)
+    {
+        $this->invoke($name, $arguments[0]);
+
+        return $this->receive();
     }
 }

@@ -54,8 +54,7 @@ class Zookeeper implements StorageInterface
                 $info = parse_url(urldecode($provider));
                 parse_str($info['query'], $args);
                 if (isset($args['version']) && $value['uri']['version'] == $args['version']) {
-
-                    $cacheKey = $this->options['prefix'] . $provider;
+                    $cacheKey = $this->options['prefix'] . $key;
                     $item = cache()->getItem($cacheKey);
                     $item->set($provider);
 
