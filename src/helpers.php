@@ -52,5 +52,13 @@ function swoole_invoke_to_json(string $service, array $params)
 
     $data = swoole_client_duboo()->$service($params);
 
-    return \Zhaqq\FastDubbo\Tools\Json::decode($data);
+    $response = \Zhaqq\FastDubbo\Tools\Json::decode($data);
+    // 防止心跳数据 或者为空
+    if ($response) {
+        $data = swoole_client_duboo()->$service($params);
+
+        $response = \Zhaqq\FastDubbo\Tools\Json::decode($data);
+    }
+
+    return $response;
 }
