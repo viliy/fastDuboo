@@ -1,5 +1,12 @@
 # Dubbo for FastD
 
+install
+
+```php
+
+composer require zhaqq/fast-dubbo
+
+```
 
 ## usage FastD
 
