@@ -60,9 +60,7 @@ class Client extends SwooleClient
             $response = $this->receive();
         } catch (\Exception $exception) {
             if (0 <= $this->retry) {
-                --$this->retry;
-                $this->resetConnected();
-                $response = $this->invoke($provider, $params);
+                $response = $this->reInvoke($provider, $params);
             } else {
                 throw new ClientException($exception->getMessage(), 502);
             }
@@ -71,5 +69,19 @@ class Client extends SwooleClient
         $this->retry = 2;
 
         return $response;
+    }
+
+    /**
+     * @param string $provider
+     * @param array $params
+     * @return string
+     * @throws ClientException
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function reInvoke(string $provider, array $params)
+    {
+        --$this->retry;
+        $this->resetConnected();
+        return $this->invoke($provider, $params);
     }
 }
