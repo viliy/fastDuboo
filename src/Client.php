@@ -56,8 +56,16 @@ class Client extends SwooleClient
         try {
             $data = duboo_buffer($provider, $params);
             $this->client->send($data);
-
-            $response = $this->receive();
+            $isData = false;
+            $retry = 0;
+            while (3 > $retry && !$isData) {
+                $response = $this->receive();
+                $retry++;
+                $isData = !(51 === strlen($response) || 0 === strlen($response));
+            }
+            if (!$isData) {
+                $response = $this->reInvoke($provider, $params);
+            }
         } catch (\Exception $exception) {
             if (0 <= $this->retry) {
                 $response = $this->reInvoke($provider, $params);
@@ -65,14 +73,18 @@ class Client extends SwooleClient
                 throw new ClientException($exception->getMessage(), 502);
             }
         }
-        // header data
-        if (51 === strlen($response)) {
-            $response = $this->reInvoke($provider, $params);
-        }
 
         $this->retry = 2;
 
         return $response;
+    }
+
+    /**
+     * @return string
+     */
+    public function receive()
+    {
+        return $this->client->recv(100000, 1);
     }
 
     /**
