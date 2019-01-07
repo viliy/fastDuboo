@@ -29,6 +29,8 @@ class SwooleClient implements ClientInterface
 
     protected $tryCount = 0;
 
+    protected $retry = 3;
+
     public function __construct($async = false)
     {
         $this->swooleClient = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
@@ -55,6 +57,7 @@ class SwooleClient implements ClientInterface
     /**
      * @param string $provider
      * @param array $params
+     * @return string
      * @throws \Icecave\Flax\Exception\EncodeException
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -62,6 +65,11 @@ class SwooleClient implements ClientInterface
     {
         $data = duboo_buffer($provider, $params);
         $this->client->send($data);
+
+        $response = $this->receive();
+
+
+        return $response;
     }
 
     /**
@@ -69,7 +77,9 @@ class SwooleClient implements ClientInterface
      */
     public function receive()
     {
-        return $data = $this->client->recv(100000, 1 );
+        $data = $this->client->recv(100000, 1);
+
+        return $data;
     }
 
     /**
@@ -127,8 +137,6 @@ class SwooleClient implements ClientInterface
      */
     public function __call($name, $arguments)
     {
-        $this->invoke($name, $arguments[0]);
-
-        return $this->receive();
+        return $this->invoke($name, $arguments[0]);
     }
 }

@@ -49,13 +49,12 @@ vim config/Server.php
     $data = swoole_invoke_to_json($provider_name, $params);
 
     // or
-    $data = swoole_clent_duboo()->$provider_name($params);
+    $data = swoole_client_duboo()->$provider_name($params);
     return \Zhaqq\FastDubbo\Tools\Json::decode($data);
 
     
     // or
-    swoole_clent_duboo()->invoke($provider_name, $params);
-    $data = swoole_clent_duboo()->revice();
+    $data = swoole_client_duboo()->invoke($provider_name, $params);
     return \Zhaqq\FastDubbo\Tools\Json::decode($data);
     
 ```

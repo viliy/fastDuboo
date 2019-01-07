@@ -26,7 +26,7 @@ function duboo_buffer(string $provider, array $params)
 
     $dubbo->parseURItoProps($uriData);
 
-    swoole_clent_duboo()->connect($dubbo->host(), $dubbo->port(), 1);
+    swoole_client_duboo()->connect($dubbo->host(), $dubbo->port(), 1);
 
     $data = $dubbo->buffer(
         $providerConfig['object']['method'],
@@ -37,7 +37,7 @@ function duboo_buffer(string $provider, array $params)
 }
 
 
-function swoole_clent_duboo()
+function swoole_client_duboo()
 {
     return app()->get(\Zhaqq\FastDubbo\Client::class);
 }
@@ -50,7 +50,7 @@ function swoole_clent_duboo()
 function swoole_invoke_to_json(string $service, array $params)
 {
 
-    $data = swoole_clent_duboo()->$service($params);
+    $data = swoole_client_duboo()->$service($params);
 
     return \Zhaqq\FastDubbo\Tools\Json::decode($data);
 }
