@@ -65,6 +65,10 @@ class Client extends SwooleClient
                 throw new ClientException($exception->getMessage(), 502);
             }
         }
+        // header data
+        if (51 === strlen($response)) {
+            $response = $this->reInvoke($provider, $params);
+        }
 
         $this->retry = 2;
 
