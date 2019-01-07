@@ -1,5 +1,7 @@
 # Dubbo for FastD
 
+[Docs](https://www.zhaqq.top/posts/8)
+
 
 关于php swoole请求dubbo的案例实在太少，长连接的案例更少，或者实现方式个人不是很喜欢，所以查阅了下资料，写了一个swoole下长连接请求dubbo的案
 
