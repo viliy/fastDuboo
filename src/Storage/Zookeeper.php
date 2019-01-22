@@ -7,6 +7,7 @@
 namespace Zhaqq\FastDubbo\Storage;
 
 use Zhaqq\FastDubbo\Contracts\StorageInterface;
+use Zhaqq\FastDubbo\Exceptions\StorageException;
 
 /**
  * Class Zookeeper
@@ -19,8 +20,7 @@ class Zookeeper implements StorageInterface
      * @var array
      */
     protected $options = [
-        'host' => '127.0.0.1',
-        'port' => 2181,
+        'host' => '127.0.0.1:2181',
         'path' => '/dubbo',
         'prefix' => 'zk.',
     ];
@@ -30,11 +30,19 @@ class Zookeeper implements StorageInterface
      */
     protected $projects = [];
 
+    /**
+     * @var ZookeeperF
+     */
     protected $client;
+
+    protected $colony = [];
+
+    protected $maxTry = 20;
 
     public function __construct(array $options)
     {
         $this->setOptions($options);
+        $this->initClient();
     }
 
     /**
@@ -42,14 +50,15 @@ class Zookeeper implements StorageInterface
      * @param $time
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function providers($projects, $time)
+    public function providers($projects, $time = 3600)
     {
-        if (!$this->client instanceof \Zookeeper) {
+        if (!$this->client instanceof \Zookeeper || 1 !== $this->client->getState()) {
             $this->initClient();
         }
 
         foreach ($projects as $key => $value) {
-            $providers = $this->client->getChildren("{$this->options['path']}/{$value['uri']['path']}/providers");
+            $providers = $this->client->getChildren("{$this->options['path']}/{$value['uri']['path']}/providers", [$this, 'watcher']);
+
             foreach ($providers as $provider) {
                 $info = parse_url(urldecode($provider));
                 parse_str($info['query'], $args);
@@ -64,9 +73,13 @@ class Zookeeper implements StorageInterface
         }
     }
 
-    public function watch()
+    public function watcher($type, $state, $key)
     {
+        echo "Watcher: $key", PHP_EOL;
 
+        if ($type == 4) {
+            $this->client->getChildren($key, [$this, 'watcher']);
+        }
     }
 
     /**
@@ -82,6 +95,11 @@ class Zookeeper implements StorageInterface
      */
     public function setOptions(array $options)
     {
+        /*   zookeeper 重连机制存在问题暂不考虑这部分实现
+        if (isset($options['colony'])) {
+            $this->colony = $options['colony'];
+        }
+       */
         $this->options = array_merge($this->options, $options);
     }
 

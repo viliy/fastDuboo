@@ -6,6 +6,19 @@
 return [
     'driver' => \Zhaqq\FastDubbo\Storage\Zookeeper::class,
     'options' => [
+        /* zookeeper 的重连机制存在bug */
+//        'colony' => [
+//            'master' => [
+//                'host' => '127.0.0.1:2181',
+//            ],
+//            'slave_1' => [
+//                'host' => '127.0.0.1:2181',
+//
+//            ],
+//            'slave_2' => [
+//                'host' => '127.0.0.1:2181',
+//            ]
+//        ],
         'host' => '127.0.0.1',
         'port' => 2181,
         'path' => '/dubbo',

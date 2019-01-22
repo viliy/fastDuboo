@@ -33,6 +33,10 @@ class Storage implements StorageInterface
         }
     }
 
+    /**
+     * @param $projects
+     * @param $time
+     */
     public function providers($projects, $time)
     {
         $this->storage->providers($projects, $time);
